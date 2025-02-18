@@ -1,13 +1,13 @@
 // Ses efektleri
 const sounds = {
-    correct: new Audio('/static/sounds/correct.mp3'),
-    wrong: new Audio('/static/sounds/wrong.mp3'),
-    success: new Audio('/static/sounds/success.mp3'),
-    click: new Audio('/static/sounds/click.mp3')
+    correct: null, // new Audio('/static/sounds/correct.mp3'),
+    wrong: null, // new Audio('/static/sounds/wrong.mp3'),
+    success: null, // new Audio('/static/sounds/success.mp3'),
+    click: null // new Audio('/static/sounds/click.mp3')
 };
 
 // Ses ayarları
-let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+let soundEnabled = false; // localStorage.getItem('soundEnabled') !== 'false';
 
 // Ses kontrolü
 function toggleSound() {
@@ -19,10 +19,14 @@ function toggleSound() {
 
 // Ses çalma fonksiyonu
 function playSound(soundName) {
+    // Ses devre dışı bırakıldı
+    return;
+    /*
     if (soundEnabled && sounds[soundName]) {
         sounds[soundName].currentTime = 0;
         sounds[soundName].play().catch(() => {});
     }
+    */
 }
 
 // Alert mesajlarını otomatik kapat
