@@ -1,25 +1,25 @@
 # Web Framework
-Django==5.1.6
+Django>=5.1.6
 
 # Form Styling
-crispy-bootstrap5==2024.2
-django-crispy-forms==2.1
+crispy-bootstrap5>=2024.2
+django-crispy-forms>=2.1
 
 # Development & Debug Tools
-django-debug-toolbar==4.3.0
+django-debug-toolbar>=4.3.0
 
 # Security
-django-cors-headers==4.3.1
+django-cors-headers>=4.3.1
 
 # Database
-sqlparse==0.4.4
+sqlparse>=0.4.4
 
 # Python Utilities
-asgiref==3.7.2
-pytz==2024.1
-python-dotenv==1.0.1
+asgiref>=3.8.1
+pytz>=2024.1
+python-dotenv>=1.0.1
 
 # Testing
-coverage==7.4.1
-pytest==8.0.0
-pytest-django==4.8.0
+coverage>=7.4.1
+pytest>=8.0.0
+pytest-django>=4.8.0
