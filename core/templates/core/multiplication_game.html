@@ -1,0 +1,276 @@
+{% extends 'core/base.html' %} {% load static %} 
+
+{% block title %}Çarpım Tablosu
+- {{ block.super }}{% endblock %} {% block extra_css %}
+<style>
+  .game-container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .question-container {
+    font-size: 2.5rem;
+    margin: 2rem 0;
+  }
+  .timer {
+    font-size: 1.5rem;
+    color: #dc3545;
+  }
+  .score {
+    font-size: 1.2rem;
+  }
+  .options-container button {
+    font-size: 1.2rem;
+    margin: 0.5rem;
+    min-width: 120px;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="game-container text-center">
+  <div class="settings-container mb-4">
+    <h2 class="mb-3">Çarpım Tablosu</h2>
+    <div class="btn-group" role="group">
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        data-difficulty="easy"
+      >
+        Kolay
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-primary active"
+        data-difficulty="medium"
+      >
+        Orta
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        data-difficulty="hard"
+      >
+        Zor
+      </button>
+    </div>
+  </div>
+
+  <div id="game-area" style="display: none">
+    <div class="d-flex justify-content-between mb-4">
+      <div class="score">Puan: <span id="score">0</span></div>
+      <div class="timer">Süre: <span id="timer">60</span></div>
+    </div>
+
+    <div class="question-container"><span id="question">5 × 7</span> = ?</div>
+
+    <div class="options-container">
+      <div class="row g-2 justify-content-center">
+        <div class="col-6 col-sm-3">
+          <button class="btn btn-primary w-100 option"></button>
+        </div>
+        <div class="col-6 col-sm-3">
+          <button class="btn btn-primary w-100 option"></button>
+        </div>
+        <div class="col-6 col-sm-3">
+          <button class="btn btn-primary w-100 option"></button>
+        </div>
+        <div class="col-6 col-sm-3">
+          <button class="btn btn-primary w-100 option"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="start-screen" class="my-5">
+    <h3 class="mb-4">Oyuna Hazır mısın?</h3>
+    <button id="start-button" class="btn btn-lg btn-success">Başla</button>
+  </div>
+
+  <div id="end-screen" style="display: none">
+    <h3 class="mb-4">Oyun Bitti!</h3>
+    <div class="results mb-4">
+      <p class="h4">Toplam Puan: <span id="final-score">0</span></p>
+      <p>Doğru: <span id="correct-answers">0</span></p>
+      <p>Yanlış: <span id="wrong-answers">0</span></p>
+    </div>
+    <button id="play-again" class="btn btn-lg btn-primary">Tekrar Oyna</button>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    let gameState = {
+      score: 0,
+      timeLeft: 60,
+      correctAnswers: 0,
+      wrongAnswers: 0,
+      currentQuestion: null,
+      difficulty: "medium",
+      timer: null,
+      isPlaying: false,
+    };
+
+    const gameArea = document.getElementById("game-area");
+    const startScreen = document.getElementById("start-screen");
+    const endScreen = document.getElementById("end-screen");
+    const startButton = document.getElementById("start-button");
+    const playAgainButton = document.getElementById("play-again");
+    const questionElement = document.getElementById("question");
+    const scoreElement = document.getElementById("score");
+    const timerElement = document.getElementById("timer");
+    const optionButtons = document.querySelectorAll(".option");
+
+    // Zorluk seviyesi seçimi
+    document.querySelectorAll("[data-difficulty]").forEach((button) => {
+      button.addEventListener("click", function () {
+        document
+          .querySelector("[data-difficulty].active")
+          .classList.remove("active");
+        this.classList.add("active");
+        gameState.difficulty = this.dataset.difficulty;
+      });
+    });
+
+    function generateQuestion() {
+      let num1, num2;
+      switch (gameState.difficulty) {
+        case "easy":
+          num1 = Math.floor(Math.random() * 5) + 1;
+          num2 = Math.floor(Math.random() * 5) + 1;
+          break;
+        case "medium":
+          num1 = Math.floor(Math.random() * 6) + 2;
+          num2 = Math.floor(Math.random() * 6) + 2;
+          break;
+        case "hard":
+          num1 = Math.floor(Math.random() * 5) + 6;
+          num2 = Math.floor(Math.random() * 5) + 6;
+          break;
+      }
+
+      const correctAnswer = num1 * num2;
+      const options = generateOptions(correctAnswer);
+
+      gameState.currentQuestion = {
+        num1,
+        num2,
+        correctAnswer,
+        options,
+      };
+
+      questionElement.textContent = `${num1} × ${num2}`;
+      optionButtons.forEach((button, index) => {
+        button.textContent = options[index];
+      });
+    }
+
+    function generateOptions(correctAnswer) {
+      const options = [correctAnswer];
+      while (options.length < 4) {
+        const offset = Math.floor(Math.random() * 5) + 1;
+        const option = correctAnswer + (Math.random() < 0.5 ? offset : -offset);
+        if (option > 0 && !options.includes(option)) {
+          options.push(option);
+        }
+      }
+      return options.sort(() => Math.random() - 0.5);
+    }
+
+    function updateScore(isCorrect) {
+      if (isCorrect) {
+        gameState.score += 10;
+        gameState.correctAnswers++;
+      } else {
+        gameState.wrongAnswers++;
+      }
+      scoreElement.textContent = gameState.score;
+    }
+
+    function startTimer() {
+      gameState.timer = setInterval(() => {
+        gameState.timeLeft--;
+        timerElement.textContent = gameState.timeLeft;
+
+        if (gameState.timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function startGame() {
+      gameState = {
+        score: 0,
+        timeLeft: 60,
+        correctAnswers: 0,
+        wrongAnswers: 0,
+        currentQuestion: null,
+        difficulty: gameState.difficulty,
+        timer: null,
+        isPlaying: true,
+      };
+
+      scoreElement.textContent = "0";
+      timerElement.textContent = "60";
+
+      startScreen.style.display = "none";
+      endScreen.style.display = "none";
+      gameArea.style.display = "block";
+
+      generateQuestion();
+      startTimer();
+    }
+
+    function endGame() {
+      clearInterval(gameState.timer);
+      gameState.isPlaying = false;
+
+      document.getElementById("final-score").textContent = gameState.score;
+      document.getElementById("correct-answers").textContent =
+        gameState.correctAnswers;
+      document.getElementById("wrong-answers").textContent =
+        gameState.wrongAnswers;
+
+      gameArea.style.display = "none";
+      endScreen.style.display = "block";
+
+      // Sonuçları sunucuya gönder
+      fetch(window.location.href, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
+            .value,
+        },
+        body: JSON.stringify({
+          score: gameState.score,
+          correct: gameState.correctAnswers,
+          wrong: gameState.wrongAnswers,
+          duration: 60 - gameState.timeLeft,
+        }),
+      });
+    }
+
+    optionButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        if (!gameState.isPlaying) return;
+
+        const selectedAnswer = parseInt(this.textContent);
+        const isCorrect =
+          selectedAnswer === gameState.currentQuestion.correctAnswer;
+
+        this.classList.remove("btn-primary");
+        this.classList.add(isCorrect ? "btn-success" : "btn-danger");
+
+        updateScore(isCorrect);
+
+        setTimeout(() => {
+          this.classList.remove("btn-success", "btn-danger");
+          this.classList.add("btn-primary");
+          generateQuestion();
+        }, 500);
+      });
+    });
+
+    startButton.addEventListener("click", startGame);
+    playAgainButton.addEventListener("click", startGame);
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'core/base.html' %} {% block title %}Ana Sayfa - {{ block.super }}
+
+{%endblock %} {% block content %}
+<div class="row">
+  <div class="col-md-8 mx-auto text-center">
+    <h1 class="display-4 mb-4">Matematik Oyununa Hoş Geldiniz!</h1>
+    <p class="lead mb-5">
+      Eğlenceli bir şekilde matematik becerilerinizi geliştirin. Çarpım tablosu,
+      hızlı matematik ve alıştırma modlarıyla öğrenmeyi keyifli hale getirin!
+    </p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body text-center">
+        <h5 class="card-title">Çarpım Tablosu</h5>
+        <p class="card-text">
+          1'den 10'a kadar çarpım tablosunu öğrenin ve pratik yapın.
+        </p>
+        <a href="{% url 'core:multiplication_game' %}" class="btn btn-primary"
+          >Oyna</a
+        >
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body text-center">
+        <h5 class="card-title">Hızlı Matematik</h5>
+        <p class="card-text">
+          Toplama, çıkarma, çarpma ve bölme işlemlerinde hızınızı test edin.
+        </p>
+        <a href="{% url 'core:quick_math' %}" class="btn btn-primary">Oyna</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body text-center">
+        <h5 class="card-title">Alıştırma Modu</h5>
+        <p class="card-text">
+          İstediğiniz konuda sınırsız alıştırma yapın ve kendinizi geliştirin.
+        </p>
+        <a href="{% url 'core:practice_mode' %}" class="btn btn-primary"
+          >Başla</a
+        >
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if user.is_authenticated %}
+<div class="row mt-5">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Profilim</h5>
+      </div>
+      <div class="card-body">
+        <p class="mb-2">Toplam Puan: {{ profile.total_score }}</p>
+        <p class="mb-2">Seviye: {{ profile.level }}</p>
+        <a href="{% url 'core:profile' %}" class="btn btn-outline-primary"
+          >Profili Görüntüle</a
+        >
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Son Oyunlarım</h5>
+      </div>
+      <div class="card-body">
+        {% if recent_games %}
+        <ul class="list-group list-group-flush">
+          {% for game in recent_games %}
+          <li class="list-group-item">
+            {{ game.game_type|title }} - Puan: {{ game.score }}
+            <small class="text-muted"
+              >({{ game.created_at|timesince }} önce)</small
+            >
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted mb-0">Henüz oyun oynamadınız.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %} {% endblock %}

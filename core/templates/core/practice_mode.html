@@ -1,0 +1,292 @@
+{% extends 'core/base.html' %} {% load static %} {% block title %}Alıştırma Modu
+- {{ block.super }}{% endblock %} {% block extra_css %}
+<style>
+  .practice-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .question-container {
+    font-size: 2rem;
+    margin: 2rem 0;
+    background-color: #f8f9fa;
+    padding: 2rem;
+    border-radius: 8px;
+  }
+  .answer-input {
+    font-size: 1.5rem;
+    text-align: center;
+    max-width: 150px;
+    margin: 0 auto;
+  }
+  .explanation {
+    font-size: 1.1rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #e9ecef;
+    border-radius: 8px;
+  }
+  .topic-card {
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .topic-card:hover {
+    transform: translateY(-5px);
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="practice-container">
+  <h2 class="text-center mb-4">Alıştırma Modu</h2>
+
+  <div id="topic-selection" class="mb-4">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card topic-card" data-topic="addition">
+          <div class="card-body text-center">
+            <h5 class="card-title">Toplama</h5>
+            <p class="card-text">1'den 1000'e kadar toplama işlemleri</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card topic-card" data-topic="subtraction">
+          <div class="card-body text-center">
+            <h5 class="card-title">Çıkarma</h5>
+            <p class="card-text">1'den 1000'e kadar çıkarma işlemleri</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card topic-card" data-topic="multiplication">
+          <div class="card-body text-center">
+            <h5 class="card-title">Çarpma</h5>
+            <p class="card-text">1'den 12'ye kadar çarpım tablosu</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card topic-card" data-topic="division">
+          <div class="card-body text-center">
+            <h5 class="card-title">Bölme</h5>
+            <p class="card-text">Temel bölme işlemleri</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card topic-card" data-topic="fractions">
+          <div class="card-body text-center">
+            <h5 class="card-title">Kesirler</h5>
+            <p class="card-text">Temel kesir işlemleri</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card topic-card" data-topic="decimals">
+          <div class="card-body text-center">
+            <h5 class="card-title">Ondalık Sayılar</h5>
+            <p class="card-text">Ondalık sayılarla işlemler</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="practice-area" style="display: none">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 id="topic-title">Konu Başlığı</h3>
+      <button id="back-button" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left"></i> Geri
+      </button>
+    </div>
+
+    <div class="question-container text-center">
+      <div id="question">5 × 7 = ?</div>
+      <div class="mt-4">
+        <input
+          type="number"
+          class="form-control answer-input"
+          id="answer-input"
+          placeholder="?"
+        />
+        <button id="check-answer" class="btn btn-primary mt-3">
+          Kontrol Et
+        </button>
+      </div>
+    </div>
+
+    <div id="feedback-container" style="display: none">
+      <div
+        class="alert alert-success"
+        id="correct-feedback"
+        style="display: none"
+      >
+        <h5>Doğru! 👍</h5>
+        <div class="explanation" id="correct-explanation"></div>
+      </div>
+      <div class="alert alert-danger" id="wrong-feedback" style="display: none">
+        <h5>Yanlış!</h5>
+        <div class="explanation" id="wrong-explanation"></div>
+      </div>
+      <button id="next-question" class="btn btn-primary mt-3">
+        Sonraki Soru
+      </button>
+    </div>
+
+    <div class="progress mt-4">
+      <div
+        id="progress-bar"
+        class="progress-bar"
+        role="progressbar"
+        style="width: 0%"
+      ></div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const topicSelection = document.getElementById("topic-selection");
+    const practiceArea = document.getElementById("practice-area");
+    const topicTitle = document.getElementById("topic-title");
+    const backButton = document.getElementById("back-button");
+    const questionElement = document.getElementById("question");
+    const answerInput = document.getElementById("answer-input");
+    const checkAnswerButton = document.getElementById("check-answer");
+    const nextQuestionButton = document.getElementById("next-question");
+    const feedbackContainer = document.getElementById("feedback-container");
+    const correctFeedback = document.getElementById("correct-feedback");
+    const wrongFeedback = document.getElementById("wrong-feedback");
+    const correctExplanation = document.getElementById("correct-explanation");
+    const wrongExplanation = document.getElementById("wrong-explanation");
+    const progressBar = document.getElementById("progress-bar");
+
+    let currentTopic = null;
+    let currentQuestion = null;
+    let progress = 0;
+
+    // Konu seçimi
+    document.querySelectorAll(".topic-card").forEach((card) => {
+      card.addEventListener("click", function () {
+        currentTopic = this.dataset.topic;
+        topicTitle.textContent = this.querySelector(".card-title").textContent;
+        topicSelection.style.display = "none";
+        practiceArea.style.display = "block";
+        generateQuestion();
+      });
+    });
+
+    // Geri butonu
+    backButton.addEventListener("click", function () {
+      practiceArea.style.display = "none";
+      topicSelection.style.display = "block";
+      currentTopic = null;
+      progress = 0;
+      updateProgressBar();
+    });
+
+    function generateQuestion() {
+      let num1, num2, answer, question, explanation;
+
+      switch (currentTopic) {
+        case "addition":
+          num1 = Math.floor(Math.random() * 1000) + 1;
+          num2 = Math.floor(Math.random() * 1000) + 1;
+          answer = num1 + num2;
+          question = `${num1} + ${num2} = ?`;
+          explanation =
+            `${num1} + ${num2} = ${answer}\n` +
+            `Toplama işleminde sayıları alt alta yazıp basamak değerlerine dikkat ederek topluyoruz.`;
+          break;
+        case "subtraction":
+          num1 = Math.floor(Math.random() * 1000) + 1;
+          num2 = Math.floor(Math.random() * num1) + 1;
+          answer = num1 - num2;
+          question = `${num1} - ${num2} = ?`;
+          explanation =
+            `${num1} - ${num2} = ${answer}\n` +
+            `Çıkarma işleminde büyük sayıdan küçük sayıyı çıkarıyoruz.`;
+          break;
+        case "multiplication":
+          num1 = Math.floor(Math.random() * 12) + 1;
+          num2 = Math.floor(Math.random() * 12) + 1;
+          answer = num1 * num2;
+          question = `${num1} × ${num2} = ?`;
+          explanation =
+            `${num1} × ${num2} = ${answer}\n` +
+            `${num1} sayısını ${num2} kere topluyoruz: ${Array(num2)
+              .fill(num1)
+              .join(" + ")} = ${answer}`;
+          break;
+        case "division":
+          num2 = Math.floor(Math.random() * 12) + 1;
+          answer = Math.floor(Math.random() * 12) + 1;
+          num1 = num2 * answer;
+          question = `${num1} ÷ ${num2} = ?`;
+          explanation =
+            `${num1} ÷ ${num2} = ${answer}\n` +
+            `${num1} sayısı ${num2} sayısına tam bölünüyor: ${num2} × ${answer} = ${num1}`;
+          break;
+        case "fractions":
+          num1 = Math.floor(Math.random() * 10) + 1;
+          num2 = Math.floor(Math.random() * 10) + 1;
+          answer = num1;
+          question = `${num1}/${num2} kesrinde pay kaçtır?`;
+          explanation =
+            `${num1}/${num2} kesrinde pay (üstteki sayı) ${num1}'dir.\n` +
+            `Bir kesir, bir bütünün eşit parçalara bölünmesiyle oluşur.`;
+          break;
+        case "decimals":
+          num1 = Math.floor(Math.random() * 100) / 10;
+          num2 = Math.floor(Math.random() * 100) / 10;
+          answer = Math.round((num1 + num2) * 10) / 10;
+          question = `${num1} + ${num2} = ?`;
+          explanation =
+            `${num1} + ${num2} = ${answer}\n` +
+            `Ondalık sayıları toplarken virgülleri alt alta getirip işlem yapıyoruz.`;
+          break;
+      }
+
+      currentQuestion = { question, answer, explanation };
+      questionElement.textContent = question;
+      answerInput.value = "";
+      answerInput.focus();
+      feedbackContainer.style.display = "none";
+    }
+
+    function checkAnswer() {
+      const userAnswer = parseFloat(answerInput.value);
+      if (isNaN(userAnswer)) return;
+
+      const isCorrect = Math.abs(userAnswer - currentQuestion.answer) < 0.001;
+      feedbackContainer.style.display = "block";
+
+      if (isCorrect) {
+        correctFeedback.style.display = "block";
+        wrongFeedback.style.display = "none";
+        correctExplanation.textContent = currentQuestion.explanation;
+        progress = Math.min(progress + 10, 100);
+        playSound("correct");
+      } else {
+        correctFeedback.style.display = "none";
+        wrongFeedback.style.display = "block";
+        wrongExplanation.textContent = currentQuestion.explanation;
+        playSound("wrong");
+      }
+
+      updateProgressBar();
+    }
+
+    function updateProgressBar() {
+      progressBar.style.width = `${progress}%`;
+      progressBar.setAttribute("aria-valuenow", progress);
+    }
+
+    checkAnswerButton.addEventListener("click", checkAnswer);
+    nextQuestionButton.addEventListener("click", generateQuestion);
+    answerInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        checkAnswer();
+      }
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,303 @@
+{% extends 'core/base.html' %} {% load static %} {% block title %}Hızlı
+Matematik - {{ block.super }}{% endblock %} {% block extra_css %}
+<style>
+  .game-container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .question-container {
+    font-size: 2.5rem;
+    margin: 2rem 0;
+    background-color: #f8f9fa;
+    padding: 2rem;
+    border-radius: 8px;
+  }
+  .timer {
+    font-size: 1.5rem;
+    color: #dc3545;
+  }
+  .score {
+    font-size: 1.2rem;
+  }
+  .answer-input {
+    font-size: 1.5rem;
+    text-align: center;
+    max-width: 150px;
+    margin: 0 auto;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="game-container text-center">
+  <div class="settings-container mb-4">
+    <h2 class="mb-3">Hızlı Matematik</h2>
+    <div class="btn-group" role="group">
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        data-operation="addition"
+      >
+        Toplama
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        data-operation="subtraction"
+      >
+        Çıkarma
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        data-operation="multiplication"
+      >
+        Çarpma
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        data-operation="division"
+      >
+        Bölme
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-primary active"
+        data-operation="mixed"
+      >
+        Karışık
+      </button>
+    </div>
+  </div>
+
+  <div id="game-area" style="display: none">
+    <div class="d-flex justify-content-between mb-4">
+      <div class="score">Puan: <span id="score">0</span></div>
+      <div class="timer">Süre: <span id="timer">60</span></div>
+    </div>
+
+    <div class="question-container"><span id="question">25 + 18</span> = ?</div>
+
+    <div class="answer-container mb-4">
+      <input
+        type="number"
+        class="form-control answer-input"
+        id="answer-input"
+        placeholder="?"
+        autofocus
+      />
+    </div>
+
+    <div class="feedback-container">
+      <div
+        class="alert alert-success"
+        style="display: none"
+        id="correct-feedback"
+      >
+        Doğru! 👍
+      </div>
+      <div class="alert alert-danger" style="display: none" id="wrong-feedback">
+        Yanlış! Doğru cevap: <span id="correct-answer"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="start-screen" class="my-5">
+    <h3 class="mb-4">Oyuna Hazır mısın?</h3>
+    <button id="start-button" class="btn btn-lg btn-success">Başla</button>
+  </div>
+
+  <div id="end-screen" style="display: none">
+    <h3 class="mb-4">Oyun Bitti!</h3>
+    <div class="results mb-4">
+      <p class="h4">Toplam Puan: <span id="final-score">0</span></p>
+      <p>Doğru: <span id="correct-answers">0</span></p>
+      <p>Yanlış: <span id="wrong-answers">0</span></p>
+    </div>
+    <button id="play-again" class="btn btn-lg btn-primary">Tekrar Oyna</button>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    let gameState = {
+      score: 0,
+      timeLeft: 60,
+      correctAnswers: 0,
+      wrongAnswers: 0,
+      currentQuestion: null,
+      operation: "mixed",
+      timer: null,
+      isPlaying: false,
+    };
+
+    const gameArea = document.getElementById("game-area");
+    const startScreen = document.getElementById("start-screen");
+    const endScreen = document.getElementById("end-screen");
+    const startButton = document.getElementById("start-button");
+    const playAgainButton = document.getElementById("play-again");
+    const questionElement = document.getElementById("question");
+    const answerInput = document.getElementById("answer-input");
+    const scoreElement = document.getElementById("score");
+    const timerElement = document.getElementById("timer");
+    const correctFeedback = document.getElementById("correct-feedback");
+    const wrongFeedback = document.getElementById("wrong-feedback");
+    const correctAnswerElement = document.getElementById("correct-answer");
+
+    // İşlem seçimi
+    document.querySelectorAll("[data-operation]").forEach((button) => {
+      button.addEventListener("click", function () {
+        document
+          .querySelector("[data-operation].active")
+          .classList.remove("active");
+        this.classList.add("active");
+        gameState.operation = this.dataset.operation;
+      });
+    });
+
+    function generateQuestion() {
+      let num1, num2, answer, question;
+      const operation =
+        gameState.operation === "mixed"
+          ? ["addition", "subtraction", "multiplication", "division"][
+              Math.floor(Math.random() * 4)
+            ]
+          : gameState.operation;
+
+      switch (operation) {
+        case "addition":
+          num1 = Math.floor(Math.random() * 100) + 1;
+          num2 = Math.floor(Math.random() * 100) + 1;
+          question = `${num1} + ${num2}`;
+          answer = num1 + num2;
+          break;
+        case "subtraction":
+          num1 = Math.floor(Math.random() * 100) + 1;
+          num2 = Math.floor(Math.random() * num1) + 1;
+          question = `${num1} - ${num2}`;
+          answer = num1 - num2;
+          break;
+        case "multiplication":
+          num1 = Math.floor(Math.random() * 12) + 1;
+          num2 = Math.floor(Math.random() * 12) + 1;
+          question = `${num1} × ${num2}`;
+          answer = num1 * num2;
+          break;
+        case "division":
+          num2 = Math.floor(Math.random() * 12) + 1;
+          answer = Math.floor(Math.random() * 12) + 1;
+          num1 = num2 * answer;
+          question = `${num1} ÷ ${num2}`;
+          break;
+      }
+
+      gameState.currentQuestion = { question, answer };
+      questionElement.textContent = question;
+      answerInput.value = "";
+      answerInput.focus();
+    }
+
+    function checkAnswer() {
+      const userAnswer = parseInt(answerInput.value);
+      if (isNaN(userAnswer)) return;
+
+      const isCorrect = userAnswer === gameState.currentQuestion.answer;
+
+      if (isCorrect) {
+        gameState.score += 10;
+        gameState.correctAnswers++;
+        correctFeedback.style.display = "block";
+        wrongFeedback.style.display = "none";
+        playSound("correct");
+      } else {
+        gameState.wrongAnswers++;
+        correctFeedback.style.display = "none";
+        wrongFeedback.style.display = "block";
+        correctAnswerElement.textContent = gameState.currentQuestion.answer;
+        playSound("wrong");
+      }
+
+      scoreElement.textContent = gameState.score;
+
+      setTimeout(() => {
+        correctFeedback.style.display = "none";
+        wrongFeedback.style.display = "none";
+        generateQuestion();
+      }, 1000);
+    }
+
+    function startTimer() {
+      gameState.timer = setInterval(() => {
+        gameState.timeLeft--;
+        timerElement.textContent = gameState.timeLeft;
+
+        if (gameState.timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function startGame() {
+      gameState = {
+        score: 0,
+        timeLeft: 60,
+        correctAnswers: 0,
+        wrongAnswers: 0,
+        currentQuestion: null,
+        operation: gameState.operation,
+        timer: null,
+        isPlaying: true,
+      };
+
+      scoreElement.textContent = "0";
+      timerElement.textContent = "60";
+
+      startScreen.style.display = "none";
+      endScreen.style.display = "none";
+      gameArea.style.display = "block";
+
+      generateQuestion();
+      startTimer();
+      playSound("success");
+    }
+
+    function endGame() {
+      clearInterval(gameState.timer);
+      gameState.isPlaying = false;
+
+      document.getElementById("final-score").textContent = gameState.score;
+      document.getElementById("correct-answers").textContent =
+        gameState.correctAnswers;
+      document.getElementById("wrong-answers").textContent =
+        gameState.wrongAnswers;
+
+      gameArea.style.display = "none";
+      endScreen.style.display = "block";
+
+      // Sonuçları sunucuya gönder
+      fetch(window.location.href, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
+            .value,
+        },
+        body: JSON.stringify({
+          score: gameState.score,
+          correct: gameState.correctAnswers,
+          wrong: gameState.wrongAnswers,
+          duration: 60 - gameState.timeLeft,
+        }),
+      });
+    }
+
+    answerInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter" && gameState.isPlaying) {
+        checkAnswer();
+      }
+    });
+
+    startButton.addEventListener("click", startGame);
+    playAgainButton.addEventListener("click", startGame);
+  });
+</script>
+{% endblock %}

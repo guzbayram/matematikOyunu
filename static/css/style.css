@@ -1,0 +1,116 @@
+/* Genel Stiller */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+}
+
+main {
+    flex: 1;
+}
+
+/* Navbar Stilleri */
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Kart Stilleri */
+.card {
+    transition: transform 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Oyun Alanı Stilleri */
+.game-container {
+    background-color: white;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.question-container {
+    background-color: #f8f9fa;
+    padding: 2rem;
+    border-radius: 8px;
+    margin: 2rem 0;
+}
+
+.options-container button {
+    transition: all 0.3s;
+}
+
+.options-container button:hover {
+    transform: scale(1.05);
+}
+
+/* Profil Sayfası Stilleri */
+.achievement-badge {
+    width: 80px;
+    height: 80px;
+    margin: 0.5rem;
+    border-radius: 50%;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.achievement-badge img {
+    max-width: 60%;
+    max-height: 60%;
+}
+
+/* Animasyonlar */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.bounce {
+    animation: bounce 0.5s;
+}
+
+/* Responsive Düzenlemeler */
+@media (max-width: 768px) {
+    .game-container {
+        padding: 1rem;
+    }
+    
+    .question-container {
+        font-size: 2rem;
+        padding: 1rem;
+    }
+    
+    .options-container button {
+        margin: 0.25rem;
+        font-size: 1rem;
+    }
+}
+
+/* Erişilebilirlik */
+.btn:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.5);
+    outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+} 
